@@ -1,0 +1,107 @@
+{
+  "name": "PopulationSummary",
+  "displayName": "PopulationSummary",
+  "category": "",
+  "helpUrl": "http://sampleserver1c.arcgisonline.com/arcgisoutput/Demographics_ESRI_Population_World/PopulationSummary.htm",
+  "serverInfo": {
+    "currentVersion": 0,
+    "url": "https://sampleserver1.arcgisonline.com/arcgis/rest/services/Demographics/ESRI_Population_World/GPServer/",
+    "hasResultMapServer": false,
+    "resultMapServerName": "",
+    "supportsUpload": false
+  },
+  "useResultMapServer": false,
+  "taskUrl": "https://sampleserver1.arcgisonline.com/arcgis/rest/services/Demographics/ESRI_Population_World/GPServer/PopulationSummary",
+  "isSynchronous": true,
+  "inputParams": [
+    {
+      "name": "inputPoly",
+      "dataType": "GPFeatureRecordSetLayer",
+      "defaultValue": {
+        "geometryType": "esriGeometryPolygon",
+        "spatialReference": {
+          "wkid": 4326
+        },
+        "Fields": [
+          {
+            "name": "FID",
+            "type": "esriFieldTypeOID",
+            "alias": "FID"
+          },
+          {
+            "name": "Shape",
+            "type": "esriFieldTypeGeometry",
+            "alias": "Shape"
+          },
+          {
+            "name": "Id",
+            "type": "esriFieldTypeInteger",
+            "alias": "Id"
+          },
+          {
+            "name": "Shape_Length",
+            "type": "esriFieldTypeDouble",
+            "alias": "Shape_Length"
+          },
+          {
+            "name": "Shape_Area",
+            "type": "esriFieldTypeDouble",
+            "alias": "Shape_Area"
+          }
+        ],
+        "fields": [
+          {
+            "name": "FID",
+            "type": "esriFieldTypeOID",
+            "alias": "FID"
+          },
+          {
+            "name": "Shape",
+            "type": "esriFieldTypeGeometry",
+            "alias": "Shape"
+          },
+          {
+            "name": "Id",
+            "type": "esriFieldTypeInteger",
+            "alias": "Id"
+          },
+          {
+            "name": "Shape_Length",
+            "type": "esriFieldTypeDouble",
+            "alias": "Shape_Length"
+          },
+          {
+            "name": "Shape_Area",
+            "type": "esriFieldTypeDouble",
+            "alias": "Shape_Area"
+          }
+        ]
+      },
+      "category": "",
+      "choiceList": [],
+      "label": "inputPoly",
+      "visible": true,
+      "required": true,
+      "featureSetMode": "layers",
+      "tooltip": "inputPoly"
+    }
+  ],
+  "outputParams": [
+    {
+      "name": "StatsSummary",
+      "dataType": "GPRecordSet",
+      "defaultValue": {},
+      "category": "",
+      "choiceList": [],
+      "label": "StatsSummary",
+      "visible": true,
+      "required": true,
+      "recordSetMode": "table"
+    }
+  ],
+  "shareResults": true,
+  "layerOrder": [
+    "inputPoly"
+  ],
+  "showExportButton": false
+}

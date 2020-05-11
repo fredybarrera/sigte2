@@ -1,0 +1,13 @@
+{
+  "name": "Report",
+  "platform": "HTML",
+  "version": "2.4",
+  "wabVersion": "2.4",
+  "author": "Artemis F.",
+  "description": "This is the Report Widget",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {
+    "hasConfig": false
+  }
+}
