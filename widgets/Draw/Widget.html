@@ -4,10 +4,10 @@
         <img title="${nls.editDrawTitle}" data-dojo-attach-point="menuEditButton" class="menu-item-active hidden" src="${folderUrl}images/edit.png" />
         <img title="${nls.listDrawTitle}" data-dojo-attach-point="menuListButton" class="menu-item" src="${folderUrl}images/list.png" data-dojo-attach-event="onclick:menuOnClickList" />
     </div>
-<!--     <span class="hide-box">
+    <span class="hide-box">
         ${nls.hideOption}
         <input type="checkbox" data-dojo-attach-point="hideCheckbox" data-dojo-attach-event="onclick:onHideCheckboxClick"/>
-  </span> -->
+  </span>
     <div data-dojo-attach-point="settingAllContent">
 
         <div data-dojo-attach-point="addSection">
@@ -21,7 +21,7 @@
 
         <div data-dojo-attach-point="editorSection">
             <h2 data-dojo-attach-point="editorTitle">${nls.addDrawTitle}</h2>
-            <div class="content">
+            <div class="content" style="padding: 13px;">
 				<div data-dojo-attach-point="fieldsDiv">
 					<label>${nls.nameField}:</label>
 					<br />
@@ -93,7 +93,7 @@
                     </tbody>
                 </table>
 				<hr />
-				<div data-dojo-attach-point="measureSection" class="measure-section">
+				<div data-dojo-attach-point="measureSection" class="measure-section" style="">
                     <div style="margin-bottom:7px;">
                         <input data-dojo-attach-point="showMeasure" type="checkbox" />
                         <label data-dojo-attach-point="showMeasureLabel">${nls.showMeasurements}</label>
@@ -134,7 +134,7 @@
 
         <div data-dojo-attach-point="listSection">
             <h2>${nls.listDrawTitle}</h2>
-            <div class="content">
+            <div class="content" style="margin-top: 10px;height: 240px;">
                 <table class="jimu-table draw-table">
                     <thead>
                         <tr>

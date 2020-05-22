@@ -124,6 +124,8 @@ define([
       },
 
       _onWidgetCreation: function(widget) {
+
+        console.log('widget: ', widget);
         if (widget.name === 'Search') {
           this._resizeWindow();
         }

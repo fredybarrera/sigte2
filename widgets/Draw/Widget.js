@@ -43,6 +43,7 @@ define([
     'esri/geometry/Polygon',
     'esri/geometry/geometryEngine',
     'esri/geometry/projection',
+    "esri/geometry/Point",
     'esri/symbols/SimpleMarkerSymbol',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleFillSymbol',
@@ -54,16 +55,267 @@ define([
     'jimu/dijit/DrawBox',
     'jimu/dijit/Message',
     'jimu/utils',
-    'jimu/symbolUtils'
+    'jimu/symbolUtils',
+    'jimu/GeojsonConverters',
+    'esri/geometry/webMercatorUtils',
+    'libs/togeojason/togeojson',
 ],
 function(
     declare, _WidgetsInTemplateMixin, BaseWidget,
     Deferred, aspect, lang, on, html, has, Color, array, domConstruct, dom, Select, NumberSpinner, localStore,
     esriConfig, InfoTemplate, Graphic, graphicsUtils, GraphicsLayer, Edit,
     esriUnits, SpatialReference, Polyline, Polygon, geometryEngine, projection,
-    SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, TextSymbol, Font,
-    exportUtils, ViewStack, SymbolChooser, DrawBox, Message, jimuUtils, jimuSymbolUtils
+    Point, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, TextSymbol, Font,
+    exportUtils, ViewStack, SymbolChooser, DrawBox, Message, jimuUtils, jimuSymbolUtils, GeojsonConverters, webMercatorUtils, toGeoJSON
 ) {
+    
+    /**
+     * @param {array} _ an array of attributes
+     * @returns {string}
+     */
+    function attr(_) {
+        return (_ && _.length) ? (' ' + _.map(function(a) {
+            return a[0] + '="' + a[1] + '"';
+        }).join(' ')) : '';
+    }
+
+    /**
+     * @param {string} el element name
+     * @param {array} attributes array of pairs
+     * @returns {string}
+     */
+    function tagClose(el, attributes) {
+        return '<' + el + attr(attributes) + '/>';
+    }
+
+    /**
+     * @param {string} el element name
+     * @param {string} contents innerXML
+     * @param {array} attributes array of pairs
+     * @returns {string}
+     */
+    function tag(el, contents, attributes) {
+        return '<' + el + attr(attributes) + '>' + contents + '</' + el + '>';
+    }
+
+    /**
+     * @param {string} _ a string of attribute
+     * @returns {string}
+     */
+    function encode(_) {
+        console.log('_', _);
+        return (_ === null || _ === undefined ? '' : _.toString()).replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+
+    function linearring(_) {
+        return _.map(function(cds) { return cds.join(','); }).join(' ');
+    }
+
+
+    function name(_, options) {
+            return _[options.name] ? tag('name', encode(_[options.name])) : '';
+    }
+
+    function description(_, options) {
+        return _[options.description] ? tag('description', encode(_[options.description])) : '';
+    }
+
+    function extendeddata(_) {
+        return tag('ExtendedData', pairs(_).map(data).join(''));
+    }
+
+
+    function data(_) {
+        return tag('Data', tag('value', encode(_[1])), [['name', encode(_[0])]]);
+    }
+    
+    function timestamp(_, options) {
+        return _[options.timestamp] ? tag('TimeStamp', tag('when', encode(_[options.timestamp]))) : '';
+    }
+
+    // ## General helpers
+    function pairs(_) {
+        var o = [];
+        for (var i in _) o.push([i, _[i]]);
+        return o;
+    }
+
+    var geometry = {
+        Point: function(_) {
+            return tag('Point', tag('coordinates', _.coordinates.join(',')));
+        },
+        LineString: function(_) {
+            return tag('LineString', tag('coordinates', linearring(_.coordinates)));
+        },
+        Polygon: function(_) {
+            if (!_.coordinates.length) return '';
+            var outer = _.coordinates[0],
+                inner = _.coordinates.slice(1),
+                outerRing = tag('outerBoundaryIs',
+                    tag('LinearRing', tag('coordinates', linearring(outer)))),
+                innerRings = inner.map(function(i) {
+                    return tag('innerBoundaryIs',
+                        tag('LinearRing', tag('coordinates', linearring(i))));
+                }).join('');
+            return tag('Polygon', outerRing + innerRings);
+        },
+        MultiPoint: function(_) {
+            if (!_.coordinates.length) return '';
+            return tag('MultiGeometry', _.coordinates.map(function(c) {
+                return geometry.Point({ coordinates: c });
+            }).join(''));
+        },
+        MultiPolygon: function(_) {
+            if (!_.coordinates.length) return '';
+            return tag('MultiGeometry', _.coordinates.map(function(c) {
+                return geometry.Polygon({ coordinates: c });
+            }).join(''));
+        },
+        MultiLineString: function(_) {
+            if (!_.coordinates.length) return '';
+            return tag('MultiGeometry', _.coordinates.map(function(c) {
+                return geometry.LineString({ coordinates: c });
+            }).join(''));
+        },
+        GeometryCollection: function(_) {
+            return tag('MultiGeometry',
+                _.geometries.map(geometry.any).join(''));
+        },
+        valid: function(_) {
+            return _ && _.type && (_.coordinates ||
+                _.type === 'GeometryCollection' && _.geometries && _.geometries.every(geometry.valid));
+        },
+        any: function(_) {
+            if (geometry[_.type]) {
+                return geometry[_.type](_);
+            } else {
+                return '';
+            }
+        },
+        isPoint: function(_) {
+            return _.type === 'Point' ||
+            _.type === 'MultiPoint';
+        },
+        isPolygon: function(_) {
+            return _.type === 'Polygon' ||
+            _.type === 'MultiPolygon';
+        },
+        isLine: function(_) {
+            return _.type === 'LineString' ||
+            _.type === 'MultiLineString';
+        },
+        // ## Style helpers
+        hashStyle: function(_) {
+            var hash = '';
+            
+            if (_['marker-symbol']) hash = hash + 'ms' + _['marker-symbol'];
+            if (_['marker-color']) hash = hash + 'mc' + _['marker-color'].replace('#', '');
+            if (_['marker-size']) hash = hash + 'ms' + _['marker-size'];
+            if (_['stroke']) hash = hash + 's' + _['stroke'].replace('#', '');
+            if (_['stroke-width']) hash = hash + 'sw' + _['stroke-width'].toString().replace('.', '');
+            if (_['stroke-opacity']) hash = hash + 'mo' + _['stroke-opacity'].toString().replace('.', '');
+            if (_['fill']) hash = hash + 'f' + _['fill'].replace('#', '');
+            if (_['fill-opacity']) hash = hash + 'fo' + _['fill-opacity'].toString().replace('.', '');
+            
+            return hash;
+        },
+
+        // ## Marker style
+        hasMarkerStyle: function(_) {
+            return !!(_['marker-size'] || _['marker-symbol'] || _['marker-color']);
+        },
+
+         markerStyle: function(_, styleHash) {
+            return tag('Style',
+                tag('IconStyle',
+                    tag('Icon',
+                        tag('href', geometry.iconUrl(_)))) +
+                geometry.iconSize(_), [['id', styleHash]]);
+        },
+
+        iconUrl: function(_) {
+            var size = _['marker-size'] || 'medium',
+                symbol = _['marker-symbol'] ? '-' + _['marker-symbol'] : '',
+                color = (_['marker-color'] || '7e7e7e').replace('#', '');
+
+            return 'https://api.tiles.mapbox.com/v3/marker/' + 'pin-' + size.charAt(0) +
+                symbol + '+' + color + '.png';
+        },
+
+        iconSize: function(_) {
+            return tag('hotSpot', '', [
+                ['xunits', 'fraction'],
+                ['yunits', 'fraction'],
+                ['x', 0.5],
+                ['y', 0.5]
+            ]);
+        },
+
+        // ## Polygon and Line style
+        hasPolygonAndLineStyle: function(_) {
+            for (var key in _) {
+                if ({
+                    "stroke": true,
+                    "stroke-opacity": true,
+                    "stroke-width": true,
+                    "fill": true,
+                    "fill-opacity": true
+                }[key]) return true;
+            }
+        },
+
+        polygonAndLineStyle: function(_, styleHash) {
+            var lineStyle = tag('LineStyle', [
+                tag('color', geometry.hexToKmlColor(_['stroke'], _['stroke-opacity']) || 'ff555555') +
+                tag('width', _['stroke-width'] === undefined ? 2 : _['stroke-width'])
+            ]);
+            
+            var polyStyle = '';
+            
+            if (_['fill'] || _['fill-opacity']) {
+                polyStyle = tag('PolyStyle', [
+                    tag('color', geometry.hexToKmlColor(_['fill'], _['fill-opacity']) || '88555555')
+                ]);
+            }
+            
+            return tag('Style', lineStyle + polyStyle, [['id', styleHash]]);
+        },
+
+        
+
+        hexToKmlColor: function(hexColor, opacity) {
+            if (typeof hexColor !== 'string') return '';
+            
+            hexColor = hexColor.replace('#', '').toLowerCase();
+            
+            if (hexColor.length === 3) {
+                hexColor = hexColor[0] + hexColor[0] + 
+                hexColor[1] + hexColor[1] + 
+                hexColor[2] + hexColor[2];
+            } else if (hexColor.length !== 6) {
+                return '';
+            }
+            
+            var r = hexColor[0] + hexColor[1];
+            var g = hexColor[2] + hexColor[3];
+            var b = hexColor[4] + hexColor[5];
+            
+            var o = 'ff';
+            if (typeof opacity === 'number' && opacity >= 0.0 && opacity <= 1.0) {
+                o = (opacity * 255).toString(16);
+                if (o.indexOf('.') > -1) o = o.substr(0, o.indexOf('.'));
+                if (o.length < 2) o = '0' + o;
+            }
+            
+            return o + b + g + r;
+        },
+
+    };
+
 
     /*jshint unused: false*/
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -163,6 +415,166 @@ function(
             new Message({
                 message: content
             });
+        },
+
+
+        getPropertiesFromGraphic: function (feature, objFeature) {
+
+            var g = feature.symbol;
+            var properties = {};
+
+            switch (objFeature.geometry.type) {
+                case 'Point': // x, y
+                    properties = {
+                        "marker-color": this.rgbToHex(g.color.r, g.color.g, g.color.b),
+                        "marker-size": g.size,
+                        "marker-style": g.style,
+                        "marker-opacity": g.color.a,
+                        "marker-outline-color": this.rgbToHex(g.outline.color.r, g.outline.color.g, g.outline.color.b),
+                        "marker-outline-style": g.outline.style,
+                        "marker-outline-type": g.outline.type,
+                        "marker-outline-width": g.outline.width,
+                        "property-name": feature.attributes.name,
+                        "property-description": feature.attributes.description,
+                    };
+                break;
+                case 'LineString': // Paths
+                    properties = {
+                        "stroke": this.rgbToHex(g.color.r, g.color.g, g.color.b),
+                        "stroke-width": g.width,
+                        "stroke-style": g.style,
+                        "stroke-opacity": g.color.a,
+                        "stroke-marker-placement": (g.marker) ? g.marker.placement : '',
+                        "stroke-marker-style": (g.marker) ? g.marker.style : '',
+                        "property-name": feature.attributes.name,
+                        "property-description": feature.attributes.description,
+                    };
+                break;
+                case 'Polygon': // Rings
+                    properties =  {
+                        "fill": this.rgbToHex(g.color.r, g.color.g, g.color.b),
+                        "fill-opacity": g.color.a,
+                        "fill-style": g.style,
+                        "stroke": this.rgbToHex(g.outline.color.r, g.outline.color.g, g.outline.color.b),
+                        "stroke-width": g.outline.width,
+                        "stroke-opacity": g.outline.color.a,
+                        "stroke-style": g.outline.style,
+                        "property-name": feature.attributes.name,
+                        "property-description": feature.attributes.description,
+                    };
+                break;
+            }
+
+            return properties
+        },
+
+        hexToRgbA: function (hex, opacity) {
+            const tempHex = hex.replace('#', '');
+            const r = parseInt(tempHex.substring(0, 2), 16);
+            const g = parseInt(tempHex.substring(2, 4), 16);
+            const b = parseInt(tempHex.substring(4, 6), 16);
+            return [r, g, b, parseFloat(opacity)];
+        },
+       
+
+        getGraphicFromGeoJson: function (feature) {
+
+            var properties = feature.properties;
+            var graphic = new Graphic();
+
+            switch (feature.geometry.type) {
+                case 'Point':
+
+                    var point = new Point({ 
+                        "x": feature.geometry.x, 
+                        "y": feature.geometry.y, 
+                        "spatialReference": {
+                            "wkid": 4326 
+                        } 
+                    });
+
+                    var symbol = new SimpleMarkerSymbol();
+                    symbol.setAngle(0);
+                    symbol.setColor(new Color(this.hexToRgbA(properties['marker-color'], properties['marker-opacity'])));
+                    symbol.setSize((parseInt(properties['marker-size'])) ? parseInt(properties['marker-size']) : 12);
+                    symbol.setStyle((properties['marker-style']) ? properties['marker-style'] : 'circle');
+                    var outline = new SimpleLineSymbol();
+                    outline.setColor(this.hexToRgbA(properties['marker-outline-color'], 1));
+                    outline.setStyle(properties['marker-outline-style'])
+                    outline.setWidth(properties['marker-outline-width'])
+                    symbol.setOutline(outline);
+
+                    var attr = {
+                        'name': properties['property-name'],
+                        'description': properties['property-description'],
+                    };
+
+                    graphic = new Graphic(point, symbol, attr);
+
+                    break;
+                case 'LineString': // Paths
+
+                    var polylineJson = {
+                        "paths": [feature.geometry.paths],
+                        "spatialReference": { "wkid": 4326 }
+                    };
+
+                    var polyline = new Polyline(polylineJson);
+
+                    var lineSymbol = new SimpleLineSymbol();
+                    lineSymbol.setColor(this.hexToRgbA(properties['stroke'], properties['stroke-opacity']));
+                    lineSymbol.setStyle(properties['stroke-style']);
+                    lineSymbol.setWidth(properties['stroke-width']);
+                    if (properties['stroke-marker-style'])
+                    {
+                        lineSymbol.setMarker({
+                            style: (properties['stroke-marker-style']),
+                            placement: properties['stroke-marker-placement']
+                        });
+                    }
+
+                    var attr = {
+                        'name': properties['property-name'],
+                        'description': properties['property-description'],
+                    };
+
+                    graphic = new Graphic(polyline, lineSymbol, attr);
+
+                    break;
+                case 'Polygon': // Rings
+
+                    var polygonJson = {
+                        "rings": feature.geometry.rings, 
+                        "spatialReference": { "wkid": 4326 }
+                    };
+
+                    var polygon = new Polygon(polygonJson);
+                    
+                    var lineSymbol = new SimpleLineSymbol();
+                    lineSymbol.setColor(this.hexToRgbA(properties['stroke'], properties['stroke-opacity']));
+                    lineSymbol.setStyle(properties['stroke-style']);
+                    lineSymbol.setWidth(properties['stroke-width']);
+                    
+                    var polygonSymbol = new SimpleFillSymbol();
+                    polygonSymbol.setColor(this.hexToRgbA(properties['fill'], properties['fill-opacity']));
+                    polygonSymbol.setOutline(lineSymbol);
+                    polygonSymbol.setStyle(properties['fill-style']);
+
+                    var attr = {
+                        'name': properties['property-name'],
+                        'description': properties['property-description'],
+                    };
+
+                    graphic = new Graphic(polygon, polygonSymbol, attr);
+   
+                    break;
+            }
+
+            return graphic
+        },
+
+        rgbToHex: function(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
         },
 
         setMenuState: function(active, elements_shown) {
@@ -411,6 +823,7 @@ function(
 
         ///////////////////////// LIST METHODS ///////////////////////////////////////////////////////////
         listGenerateDrawTable: function() {
+            //TODO: Aca se genera la lista
             //Generate draw features table
             var graphics = this.drawBox.drawLayer.graphics;
             var nb_graphics = graphics.length;
@@ -974,11 +1387,9 @@ function(
                 return false;
             }
 
-            // var dragAndDropSupport = ()
-
-            var content = '<div class="eDraw-import-message" id="' + this.id + '___div_import_message">' +
+            var content = '<div class="eDraw-import-message" id="' + this.id + '___div_import_message" style="background-color: white;">' +
                 '<input class="file" type="file" id="' + this.id + '___input_file_import"/>' +
-                '<div class="eDraw-import-draganddrop-message">' + this.nls.importDragAndDropMessage + '</div>' +
+                '<div class="eDraw-import-draganddrop-message" style="color: black;">' + this.nls.importDragAndDropMessage + '</div>' +
                 '</div>';
             this.importMessage = new Message({
                 message: content,
@@ -1037,23 +1448,26 @@ function(
         },
 
         importJsonContent: function(json, nameField, descriptionField) {
-            try {
-                if (typeof json == 'string') {
-                    json = JSON.parse(json);
-                }
 
-                if (!json.features) {
+            var geojson = toGeoJSON.kml((new DOMParser()).parseFromString(json, 'text/xml'))
+            
+            try {
+                // if (typeof json == 'string') {
+                //     json = JSON.parse(geojson);
+                // }
+
+                if (geojson.features === undefined || geojson.features === '' || geojson.features === null) {
                     this.showMessage(this.nls.importErrorFileStructure, 'error');
                     return false;
                 }
 
-                if (json.features.length < 1) {
+                if (geojson.features.length < 1) {
                     this.showMessage(this.nls.importWarningNoDrawings, 'warning');
                     return false;
                 }
 
                 if (!nameField) {
-                    var g = json.features[0];
+                    var g = geojson.features[0];
                     var fields_possible = ["name", "title", "label"];
                     if (g.attributes) {
                         for (var i in fields_possible) {
@@ -1065,7 +1479,7 @@ function(
                     }
                 }
                 if (!descriptionField) {
-                    var g = json.features[0];
+                    var g = geojson.features[0];
                     var fields_possible = ["description", "descript", "desc", "comment", "comm"];
                     if (g.attributes) {
                         for (var i = 0, len = fields_possible.length; i < len; i++) {
@@ -1079,10 +1493,9 @@ function(
 
                 var measure_features_i = [];
                 var graphics = [];
-                for (var i = 0, len = json.features.length; i < len; i++) {
-                    var json_feat = json.features[i];
-
-                    var g = new Graphic(json_feat);
+                for (var i = 0, len = geojson.features.length; i < len; i++) {
+                    var json_feat = geojson.features[i];
+                    var g = this.getGraphicFromGeoJson(json_feat);
 
                     if (!g)
                         continue;
@@ -1090,10 +1503,10 @@ function(
                     if (!g.attributes)
                         g.attributes = {};
 
-                    g.attributes["name"] = (!nameField || !g.attributes[nameField]) ? 'n°' + (i + 1) : g.attributes[nameField];
-                    if (g.symbol && g.symbol.type == "textsymbol")
-                        g.attributes["name"] = g.symbol.text;
-                    g.attributes["description"] = (!descriptionField || !g.attributes[descriptionField]) ? '' : g.attributes[descriptionField];
+                    // g.attributes["name"] = (!nameField || !g.attributes[nameField]) ? 'n°' + (i + 1) : g.attributes[nameField];
+                    // if (g.symbol && g.symbol.type == "textsymbol")
+                    //     g.attributes["name"] = g.symbol.text;
+                    // g.attributes["description"] = (!descriptionField || !g.attributes[descriptionField]) ? '' : g.attributes[descriptionField];
 
                     if (!g.symbol) {
                         var symbol = false;
@@ -1144,6 +1557,7 @@ function(
                 //Show list
                 this.setMode("list");
             } catch (e) {
+                console.log('eeeeeeeeeeeeeeeee: ', e);
                 this.showMessage(this.nls.importErrorFileStructure, 'error');
                 return false;
             }
@@ -1156,7 +1570,44 @@ function(
         exportSelectionInFile: function(evt) {
             if (evt && evt.preventDefault)
                 evt.preventDefault();
-            this.launchExport(true);
+            this.launchExportV2(true);
+        },
+
+        launchExportV2: function(only_graphics_checked) {
+
+            var drawing_json = this.drawingsGetJson(false, only_graphics_checked);
+
+            // Control if there are drawings
+            if (!drawing_json) {
+                this.showMessage(this.nls.importWarningNoExport0Draw, 'warning');
+                return false;
+            }
+
+            var geojsonObject = {
+                "name": (this.config.exportFileName) ? (this.config.exportFileName) : "Mi dibujo",
+                "type":"FeatureCollection",
+                "features":[]
+            };
+
+            if (drawing_json.features.length > 0) {
+
+                for (var i = 0; i < this.drawBox.drawLayer.graphics.length; i++) {
+                    var objFeature;
+                    var feature = this.drawBox.drawLayer.graphics[i];
+                    feature.geometry = webMercatorUtils.webMercatorToGeographic(feature.geometry);
+                    objFeature = GeojsonConverters.arcgisToGeoJSON(feature);
+                    objFeature.properties = this.getPropertiesFromGraphic(feature, objFeature);                   
+                    geojsonObject.features.push(objFeature);
+                }
+            }
+
+            var str_kml = this.tokml(geojsonObject);
+
+            saveAs(new Blob([str_kml], {
+                type: 'application/vnd.google-earth.kml+xml'
+            }), 'Dibujo.kml');
+
+            return false;
         },
 
         launchExport: function(only_graphics_checked) {
@@ -2274,6 +2725,109 @@ function(
             }
             this.inherited(arguments);
         },
+
+
+
+        //////////////////////////// GeoJson To Kml ///////////////////////////////////////////////////////////////////////////////////////
+
+
+        tokml: function(geojson, options) {
+
+            options = options || {
+                documentName: undefined,
+                documentDescription: undefined,
+                name: 'name',
+                description: 'description',
+                simplestyle: true,
+                timestamp: 'timestamp'
+            };
+
+            return '<?xml version="1.0" encoding="UTF-8"?>' +
+                tag('kml',
+                    tag('Document',
+                        this.documentName(options) +
+                        this.documentDescription(options) +
+                        this.root(geojson, options)
+                       ), [['xmlns', 'http://www.opengis.net/kml/2.2']]);
+        },
+
+
+        feature: function(options, styleHashesArray) {
+            return function(_) {
+                if (!_.properties || !geometry.valid(_.geometry)) return '';
+                var geometryString = geometry.any(_.geometry);
+                if (!geometryString) return '';
+                
+                var styleDefinition = '',
+                    styleReference = '';
+                if (options.simplestyle) {
+                    var styleHash = geometry.hashStyle(_.properties);
+                    if (styleHash) {
+                        if (geometry.isPoint(_.geometry) && geometry.hasMarkerStyle(_.properties)) {
+                            if (styleHashesArray.indexOf(styleHash) === -1) {
+                                // styleDefinition = geometry.markerStyle(_.properties, styleHash);
+                                styleHashesArray.push(styleHash);
+                            }
+                            styleReference = tag('styleUrl', '#' + styleHash);
+                        } else if ((geometry.isPolygon(_.geometry) || geometry.isLine(_.geometry)) && 
+                            geometry.hasPolygonAndLineStyle(_.properties)) {
+                            if (styleHashesArray.indexOf(styleHash) === -1) {
+                                styleDefinition = geometry.polygonAndLineStyle(_.properties, styleHash);
+                                styleHashesArray.push(styleHash);
+                            }
+                            styleReference = tag('styleUrl', '#' + styleHash);
+                        }
+                        // Note that style of GeometryCollection / MultiGeometry is not supported
+                    }
+                }
+                
+                return styleDefinition + tag('Placemark',
+                    name(_.properties, options) +
+                    description(_.properties, options) +
+                    extendeddata(_.properties) +
+                    timestamp(_.properties, options) +
+                    geometryString +
+                    styleReference);
+            };
+        },
+
+        root: function(_, options) {
+
+            if (!_.type) return '';
+            var styleHashesArray = [];
+                    
+            switch (_.type) {
+                case 'FeatureCollection':
+                    if (!_.features) return '';
+                    return _.features.map(this.feature(options, styleHashesArray)).join('');
+                case 'Feature':
+                    return this.feature(options, styleHashesArray)(_);
+                default:
+                    return this.feature(options, styleHashesArray)({
+                        type: 'Feature',
+                        geometry: _,
+                        properties: {}
+                    });
+            }
+        },
+
+        documentName: function(options) {
+            return (options.documentName !== undefined) ? tag('name', options.documentName) : '';
+        },
+
+        documentDescription: function(options) {
+            return (options.documentDescription !== undefined) ? tag('description', options.documentDescription) : '';
+        },
+
+      
+      
+
+        
+
+        
+
+
+        
 
         ///////////////////////// UTILS METHODS ////////////////////////////////////////////////////////////////////////////
         _UTIL__enableClass: function(elt, className, bool) {

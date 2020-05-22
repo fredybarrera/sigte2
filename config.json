@@ -268,8 +268,16 @@
         "name": "Report",
         "version": "2.4",
         "uri": "widgets/Report/Widget",
-        "index": 15,
+        "index": 14,
         "id": "widgets_Report_Widget_37"
+      },
+      {
+        "name": "AddData",
+        "version": "2.16",
+        "uri": "widgets/AddData/Widget",
+        "config": "configs/AddData/config_widgets_AddData_Widget_38.json",
+        "index": 15,
+        "id": "widgets_AddData_Widget_38"
       }
     ],
     "groups": []
