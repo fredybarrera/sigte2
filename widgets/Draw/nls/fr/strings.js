@@ -33,6 +33,7 @@ define(
 		unitMap : "Unités de la carte",
 		unitDMS : "Degrés Minutes Secondes",
 		unitDD : "Degrés décimaux",
+		unitUTM: "Unidad UTM (Universal Transverse Mercator)",
 		kilometers : "Kilomètres",
 		miles : "Miles",
 		meters : "Mètres",

@@ -58,6 +58,7 @@ define([
     'jimu/symbolUtils',
     'jimu/GeojsonConverters',
     'esri/geometry/webMercatorUtils',
+    'esri/geometry/coordinateFormatter',
     'libs/togeojason/togeojson',
 ],
 function(
@@ -66,7 +67,7 @@ function(
     esriConfig, InfoTemplate, Graphic, graphicsUtils, GraphicsLayer, Edit,
     esriUnits, SpatialReference, Polyline, Polygon, geometryEngine, projection,
     Point, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, TextSymbol, Font,
-    exportUtils, ViewStack, SymbolChooser, DrawBox, Message, jimuUtils, jimuSymbolUtils, GeojsonConverters, webMercatorUtils, toGeoJSON
+    exportUtils, ViewStack, SymbolChooser, DrawBox, Message, jimuUtils, jimuSymbolUtils, GeojsonConverters, webMercatorUtils, coordinateFormatter, toGeoJSON
 ) {
     
     /**
@@ -422,21 +423,29 @@ function(
 
             var g = feature.symbol;
             var properties = {};
-
+            console.log('feature: ', feature);
+            console.log('objFeature: ', objFeature);
             switch (objFeature.geometry.type) {
                 case 'Point': // x, y
-                    properties = {
-                        "marker-color": this.rgbToHex(g.color.r, g.color.g, g.color.b),
-                        "marker-size": g.size,
-                        "marker-style": g.style,
-                        "marker-opacity": g.color.a,
-                        "marker-outline-color": this.rgbToHex(g.outline.color.r, g.outline.color.g, g.outline.color.b),
-                        "marker-outline-style": g.outline.style,
-                        "marker-outline-type": g.outline.type,
-                        "marker-outline-width": g.outline.width,
-                        "property-name": feature.attributes.name,
-                        "property-description": feature.attributes.description,
-                    };
+                    if (g.type === "simplemarkersymbol")
+                    {
+                        properties = {
+                            "marker-color": this.rgbToHex(g.color.r, g.color.g, g.color.b),
+                            "marker-size": g.size,
+                            "marker-style": g.style,
+                            "marker-opacity": g.color.a,
+                            "marker-outline-color": this.rgbToHex(g.outline.color.r, g.outline.color.g, g.outline.color.b),
+                            "marker-outline-style": g.outline.style,
+                            "marker-outline-type": g.outline.type,
+                            "marker-outline-width": g.outline.width,
+                            "property-name": feature.attributes.name,
+                            "property-description": feature.attributes.description,
+                        };
+                    }else{
+                        //"textsymbol"
+                        //TODO: Implementar textsymbol - omitir la creacion del punto del texto
+                    }
+                        
                 break;
                 case 'LineString': // Paths
                     properties = {
@@ -469,6 +478,8 @@ function(
         },
 
         hexToRgbA: function (hex, opacity) {
+            console.log('hex: ', hex);
+            console.log('opacity: ', opacity);
             const tempHex = hex.replace('#', '');
             const r = parseInt(tempHex.substring(0, 2), 16);
             const g = parseInt(tempHex.substring(2, 4), 16);
@@ -481,6 +492,8 @@ function(
 
             var properties = feature.properties;
             var graphic = new Graphic();
+
+            console.log('feature: ', feature);
 
             switch (feature.geometry.type) {
                 case 'Point':
@@ -1592,12 +1605,17 @@ function(
             if (drawing_json.features.length > 0) {
 
                 for (var i = 0; i < this.drawBox.drawLayer.graphics.length; i++) {
-                    var objFeature;
                     var feature = this.drawBox.drawLayer.graphics[i];
-                    feature.geometry = webMercatorUtils.webMercatorToGeographic(feature.geometry);
-                    objFeature = GeojsonConverters.arcgisToGeoJSON(feature);
-                    objFeature.properties = this.getPropertiesFromGraphic(feature, objFeature);                   
-                    geojsonObject.features.push(objFeature);
+                    if (feature.symbol.type !== 'textsymbol')
+                    {
+                        var objFeature;
+                        feature.geometry = webMercatorUtils.webMercatorToGeographic(feature.geometry);
+                        objFeature = GeojsonConverters.arcgisToGeoJSON(feature);
+                        objFeature.properties = this.getPropertiesFromGraphic(feature, objFeature);
+                        console.log('objFeature: ', objFeature);
+                        console.log('feature: ', feature);
+                        geojsonObject.features.push(objFeature);
+                    }
                 }
             }
 
@@ -2127,32 +2145,53 @@ function(
 
           switch(geometry.type){
             case 'point':
-
-                var coords = {
-                    "x": this._round(geometry.x, 2),
-                    "y": this._round(geometry.y, 2)
-                };
-
-                if(pointUnit != "map"){
-                    var coords = null;
-                    if (wkid == 4326) {
-                        coords = {
-                            "x": geometry.x,
-                            "y": geometry.y
+                
+                switch (pointUnit) {
+                    case 'map':
+                        
+                        var coords = {
+                            "x": this._round(geometry.x, 2),
+                            "y": this._round(geometry.y, 2)
                         };
-                    } else if (projection.isLoaded()) {
-                        var point_wgs84 = projection.project(geometry, new SpatialReference({
-                            wkid: 4326
-                        }));
+
+                        break;
+                    case 'UTM':
+
+                        var ptg = webMercatorUtils.webMercatorToGeographic(geometry);
+                        var pt = new Point(ptg, new SpatialReference({ wkid: 4326 }));
+                        var utm = coordinateFormatter.toUtm(pt, 'north-south-indicators', true);
+                        var arr = utm.split(' ');
+
                         coords = {
-                            "x": point_wgs84.x,
-                            "y": point_wgs84.y
+                            "x": arr[0] + ' ' + arr[1],
+                            "y": arr[2]
                         };
-                    }
-                    if (!coords){
-                      return;
-                    }
-                    coords = this._prepareLonLat(coords, pointUnit == "DMS");
+
+                          break;
+                
+                    default:
+                        
+                        var coords = null;
+                        if (wkid == 4326) {
+                            coords = {
+                                "x": geometry.x,
+                                "y": geometry.y
+                            };
+                        } else if (projection.isLoaded()) {
+                            var point_wgs84 = projection.project(geometry, new SpatialReference({
+                                wkid: 4326
+                            }));
+                            coords = {
+                                "x": point_wgs84.x,
+                                "y": point_wgs84.y
+                            };
+                        }
+                        if (!coords){
+                            return;
+                        }
+                        coords = this._prepareLonLat(coords, pointUnit == "DMS");
+                        
+                        break;
                 }
 
                 var pointPattern = (this.config.measurePointLabel) ? this.config.measurePointLabel : "{{x}} {{y}}";
