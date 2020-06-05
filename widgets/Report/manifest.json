@@ -1,10 +1,10 @@
 {
-  "name": "Report",
+  "name": "Conversor de coordenadas mina",
   "platform": "HTML",
   "version": "2.4",
   "wabVersion": "2.4",
-  "author": "Artemis F.",
-  "description": "This is the Report Widget",
+  "author": "fbarrera@esri.cl",
+  "description": "Widget de conversión de coordenadas mina",
   "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {

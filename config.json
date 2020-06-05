@@ -265,7 +265,7 @@
         "id": "widgets_Geoprocessing_Widget_36"
       },
       {
-        "name": "Report",
+        "name": "CoordinateMine",
         "version": "2.4",
         "uri": "widgets/Report/Widget",
         "index": 14,

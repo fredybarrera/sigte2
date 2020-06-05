@@ -1,6 +1,6 @@
 define({
   root: ({
-    _widgetLabel: "Report"
+    _widgetLabel: "Conversor de coordenadas mina"
   }),
   "ar": 0,
   "cs": 0,

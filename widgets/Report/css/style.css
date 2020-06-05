@@ -1,3 +1,20 @@
 .jimu-widget-demo div:first-child{
   color: red;
 }
+
+.input-custom{
+  padding: 6px;
+  background-color: black;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  width: 90%;
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 7px;
+}

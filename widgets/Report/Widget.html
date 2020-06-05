@@ -1,3 +1,31 @@
-<div>
-	<div class="jimu-btn" data-dojo-attach-point="btnPrint" data-dojo-attach-event="onclick:_onBtnPrintClicked">Generar reporte</div>
+<div id="container-coordinate-converter">
+	<div class="inputcontainer">
+		<label for="fmina_lon" class="firstFocusNode">Coordenada mina X:</label><br>
+		<input tabindex="3" id="mina_lon" class="input-custom" type="number" placeholder="Ej. 813.67" required>
+		<label for="fmina_lat">Coordenada mina Y:</label><br>
+		<input tabindex="4" id="mina_lat" class="input-custom" type="number" placeholder="Ej. 43.2" required>
+	</div>
+	<br/>
+	<center>
+		<div tabindex="5" class="jimu-btn" data-dojo-attach-event="onclick:_onBtnConvertClicked">Convertir</div>
+	</center>
+	<br/>
+	<div class="inputcontainer">
+		<table>
+			<thead>
+				<tr>
+					<td>X_WGS84</td>
+					<td>Y_WGS84</td>
+					<td>X_WGS84</td>
+					<td>Y_WGS84</td>
+					<td>UTM</td>
+				</tr>
+			</thead>
+			<tbody id="tbody-container-coordinates"></tbody>
+		</table>
+	</div>
+	<br />
+	<center>
+		<div tabindex="5" class="jimu-btn" data-dojo-attach-event="onclick:_onBtnCleanClicked">Limpiar</div>
+	</center>
 </div>

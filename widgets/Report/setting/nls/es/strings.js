@@ -2,6 +2,6 @@ define({
   "configText": "sadasdasd",
   "_widgetLabel": "asdasd",
   "generateReport": "Generar reporte",
-  "name": "Report",
+  "name": "Conversor de coordenadas mina",
   "sssss": "sadasdasd"
 });
