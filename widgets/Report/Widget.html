@@ -1,9 +1,27 @@
 <div id="container-coordinate-converter">
 	<div class="inputcontainer">
-		<label for="fmina_lon" class="firstFocusNode">Coordenada mina X:</label><br>
-		<input tabindex="3" id="mina_lon" class="input-custom" type="number" placeholder="Ej. 813.67" required>
-		<label for="fmina_lat">Coordenada mina Y:</label><br>
-		<input tabindex="4" id="mina_lat" class="input-custom" type="number" placeholder="Ej. 43.2" required>
+		<table cellspacing="0" cellpadding="0" style="border: none;">
+			<thead>
+				<tr>
+					<td style="border: none;">
+						<label for="fmina_lon" class="firstFocusNode">Coordenada este mina (x)</label>
+					</td>
+					<td style="border: none;">
+						<label for="fmina_lat">Coordenada norte mina (y)</label><br>
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="border: none;">
+						<input tabindex="3" id="mina_lon" class="input-custom" type="number" placeholder="Ej. 813.67" required>
+					</td>
+					<td style="border: none;">
+						<input tabindex="4" id="mina_lat" class="input-custom" type="number" placeholder="Ej. 43.2" required>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 	<br/>
 	<center>
@@ -11,14 +29,16 @@
 	</center>
 	<br/>
 	<div class="inputcontainer">
-		<table>
-			<thead>
+		<table class="table-mina" id="table-mina">
+			<thead style="background-color:#CF0000;color:white;">
 				<tr>
-					<td>X_WGS84</td>
-					<td>Y_WGS84</td>
-					<td>X_WGS84</td>
-					<td>Y_WGS84</td>
-					<td>UTM</td>
+					<td>Este Mina (X)</td>
+					<td>Norte Mina (Y)</td>
+					<td>UTM WGS 84 (Huso, X, Y)</td>
+					<td>Este PSAD 56 (X)</td>
+					<td>Norte PSAD 56 (Y)</td>
+					<td>Este WGS 84 (Latitud)</td>
+					<td>Norte WGS 84 (Longitud)</td>
 				</tr>
 			</thead>
 			<tbody id="tbody-container-coordinates"></tbody>
@@ -27,5 +47,6 @@
 	<br />
 	<center>
 		<div tabindex="5" class="jimu-btn" data-dojo-attach-event="onclick:_onBtnCleanClicked">Limpiar</div>
+		<div tabindex="5" class="jimu-btn" data-dojo-attach-event="onclick:_onBtnExportClicked">Exportar</div>
 	</center>
 </div>
