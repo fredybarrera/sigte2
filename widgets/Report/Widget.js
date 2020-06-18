@@ -161,11 +161,11 @@ define([
 					// Transformo a WGS84
 					var projGeo = projection.project(point, outSpatialReferenceGeo);
 					console.log('projGeo: ', projGeo);
-					var x_wgs84 = projGeo.x.toFixed(3)
-					var y_wgs84 = projGeo.y.toFixed(3)
+					var x_wgs84 = projGeo.x.toFixed(3);
+					var y_wgs84 = projGeo.y.toFixed(3);
 					
 					// Transformo a PSAD_56
-					var projPsad = projection.project(point, outSpatialReferencePsad56);
+					var projPsad = projection.project(projGeo, outSpatialReferencePsad56);
 					console.log('projPsad: ', projPsad);
 					var x_psad56 = projPsad.x.toFixed(3);
 					var y_psad56 = projPsad.y.toFixed(3);
@@ -179,12 +179,12 @@ define([
 					var sms = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_CIRCLE).setColor(new Color([255, 0, 0, 0.5]));
 
 					var attr = { 
-						"lon_mina": lon_mina, 
-						"lat_mina": lat_mina, 
-						"x_wgs84": x_wgs84, 
-						"y_wgs84": y_wgs84, 
-						"x_psad56": x_psad56, 
-						"y_psad56": y_psad56, 
+						"lon_mina": lon_mina.replace('.', ','), 
+						"lat_mina": lat_mina.replace('.', ','), 
+						"x_wgs84": x_wgs84.replace('.', ','), 
+						"y_wgs84": y_wgs84.replace('.', ','), 
+						"x_psad56": x_psad56.replace('.', ','), 
+						"y_psad56": y_psad56.replace('.', ','), 
 						"coords_utm": coords_utm
 					};
 
@@ -218,13 +218,13 @@ define([
 					gLayer.add(graphic);
 
 					var tr = document.createElement('tr');
-					tr.innerHTML += '<td>' + lon_mina + '</td>'
-					tr.innerHTML += '<td>' + lat_mina + '</td>'
+					tr.innerHTML += '<td>' + lon_mina.replace('.', ',') + '</td>'
+					tr.innerHTML += '<td>' + lat_mina.replace('.', ',') + '</td>'
 					tr.innerHTML += '<td>' + coords_utm + '</td>'
-					tr.innerHTML += '<td>' + x_psad56 + '</td>'
-					tr.innerHTML += '<td>' + y_psad56 + '</td>'
-					tr.innerHTML += '<td>' + y_wgs84 + '</td>'
-					tr.innerHTML += '<td>' + x_wgs84 + '</td>'
+					tr.innerHTML += '<td>' + x_psad56.replace('.', ',') + '</td>'
+					tr.innerHTML += '<td>' + y_psad56.replace('.', ',') + '</td>'
+					tr.innerHTML += '<td>' + y_wgs84.replace('.', ',') + '</td>'
+					tr.innerHTML += '<td>' + x_wgs84.replace('.', ',') + '</td>'
 					var tbody = document.getElementById("tbody-container-coordinates");
 					tbody.appendChild(tr);
 				});
