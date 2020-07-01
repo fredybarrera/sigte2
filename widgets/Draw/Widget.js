@@ -421,6 +421,9 @@ function(
 
         getPropertiesFromGraphic: function (feature, objFeature) {
 
+            console.log('feature: ', feature);
+            console.log('objFeature: ', objFeature);
+
             var g = feature.symbol;
             var properties = {};
             console.log('feature: ', feature);
@@ -438,12 +441,27 @@ function(
                             "marker-outline-style": g.outline.style,
                             "marker-outline-type": g.outline.type,
                             "marker-outline-width": g.outline.width,
+                            "marker-type": "point",
                             "property-name": feature.attributes.name,
                             "property-description": feature.attributes.description,
                         };
                     }else{
                         //"textsymbol"
                         //TODO: Implementar textsymbol - omitir la creacion del punto del texto
+                        properties = {
+                            "marker-color": this.rgbToHex(g.color.r, g.color.g, g.color.b),
+                            "marker-font-decoration": (g.font.decoration) ? g.font.decoration : '',
+                            "marker-font-family": (g.font.family) ? g.font.family : '',
+                            "marker-font-size": (g.font.size) ? g.font.size : '',
+                            "marker-font-style": (g.font.style) ? g.font.style : '',
+                            "marker-font-weight": (g.font.weight) ? g.font.weight : '',
+                            "marker-type": "textsymbol",
+                            "marker-text": g.text,
+                            "marker-align": g.align,
+                            "marker-angle": g.angle,
+                            "property-name": feature.attributes.name,
+                            "property-description": feature.attributes.description,
+                        };
                     }
                         
                 break;
@@ -493,6 +511,7 @@ function(
             var properties = feature.properties;
             var graphic = new Graphic();
 
+            console.log('getGraphicFromGeoJsonssssssssss');
             console.log('feature: ', feature);
 
             switch (feature.geometry.type) {
@@ -506,23 +525,58 @@ function(
                         } 
                     });
 
-                    var symbol = new SimpleMarkerSymbol();
-                    symbol.setAngle(0);
-                    symbol.setColor(new Color(this.hexToRgbA(properties['marker-color'], properties['marker-opacity'])));
-                    symbol.setSize((parseInt(properties['marker-size'])) ? parseInt(properties['marker-size']) : 12);
-                    symbol.setStyle((properties['marker-style']) ? properties['marker-style'] : 'circle');
-                    var outline = new SimpleLineSymbol();
-                    outline.setColor(this.hexToRgbA(properties['marker-outline-color'], 1));
-                    outline.setStyle(properties['marker-outline-style'])
-                    outline.setWidth(properties['marker-outline-width'])
-                    symbol.setOutline(outline);
 
-                    var attr = {
-                        'name': properties['property-name'],
-                        'description': properties['property-description'],
-                    };
+                    if (properties['marker-type'] === 'point'){
+                        var symbol = new SimpleMarkerSymbol();
+                        symbol.setAngle(0);
+                        symbol.setColor(new Color(this.hexToRgbA(properties['marker-color'], properties['marker-opacity'])));
+                        symbol.setSize((parseInt(properties['marker-size'])) ? parseInt(properties['marker-size']) : 12);
+                        symbol.setStyle((properties['marker-style']) ? properties['marker-style'] : 'circle');
+                        var outline = new SimpleLineSymbol();
+                        outline.setColor(this.hexToRgbA(properties['marker-outline-color'], 1));
+                        outline.setStyle(properties['marker-outline-style'])
+                        outline.setWidth(properties['marker-outline-width'])
+                        symbol.setOutline(outline);
+    
+                        var attr = {
+                            'name': properties['property-name'],
+                            'description': properties['property-description'],
+                        };
 
-                    graphic = new Graphic(point, symbol, attr);
+                    } else if (properties['marker-type'] === 'textsymbol'){
+
+                        var symbolFont = new Font();
+                        symbolFont.setDecoration(properties['marker-font-decoration']);
+                        symbolFont.setFamily(properties['marker-font-family']);
+                        symbolFont.setSize(properties['marker-font-size']+'px');
+
+                        if (properties['marker-font-style'] === 'italic')
+                        {
+                            symbolFont.setStyle(Font.STYLE_ITALIC);
+                        } else {
+                            symbolFont.setStyle(Font.STYLE_NORMAL);
+                        }
+
+                        if (properties['marker-font-weight'] === 'bold') {
+                            symbolFont.setWeight(Font.WEIGHT_BOLD);
+                        } else {
+                            symbolFont.setWeight(Font.WEIGHT_NORMAL);
+                        }
+                        
+                        var textSymbol = new TextSymbol();
+                        textSymbol.setColor(new Color(this.hexToRgbA(properties['marker-color'], 0.8)));
+                        textSymbol.setFont(symbolFont);
+                        textSymbol.setText(properties['marker-text']);
+                        textSymbol.setAngle(parseInt(properties['marker-angle']));
+                        textSymbol.setVerticalAlignment(properties['marker-align']);
+
+                        var attr = {
+                            'name': properties['property-name'],
+                            'description': properties['property-description'],
+                        };
+                    }
+
+                    graphic = new Graphic(point, textSymbol, attr);
 
                     break;
                 case 'LineString': // Paths
@@ -1456,13 +1510,139 @@ function(
 
         importOnFileLoad: function(evt) {
             var content = evt.target.result;
-            this.importJsonContent(content);
+            var input_file = this.importInput.files[0];
+            extension = input_file.name.split('.').pop();
+                        
+            if (extension === 'json')
+            {
+                this.importJsonContent(content);
+
+            } else if (extension === 'kml'){
+                this.importJsonContentV2(content);
+            }else{
+                this.showMessage(this.nls.importErrorFileStructure, 'error');
+                return false;
+            }
             this.importMessage.close();
         },
 
-        importJsonContent: function(json, nameField, descriptionField) {
+        importJsonContent: function (json, nameField, descriptionField) {
+            try {
+                if (typeof json == 'string') {
+                    json = JSON.parse(json);
+                }
 
+                if (!json.features) {
+                    this.showMessage(this.nls.importErrorFileStructure, 'error');
+                    return false;
+                }
+
+                if (json.features.length < 1) {
+                    this.showMessage(this.nls.importWarningNoDrawings, 'warning');
+                    return false;
+                }
+
+                if (!nameField) {
+                    var g = json.features[0];
+                    var fields_possible = ["name", "title", "label"];
+                    if (g.attributes) {
+                        for (var i in fields_possible) {
+                            if (g.attributes[fields_possible[i]]) {
+                                nameField = fields_possible[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!descriptionField) {
+                    var g = json.features[0];
+                    var fields_possible = ["description", "descript", "desc", "comment", "comm"];
+                    if (g.attributes) {
+                        for (var i = 0, len = fields_possible.length; i < len; i++) {
+                            if (g.attributes[fields_possible[i]]) {
+                                descriptionField = fields_possible[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                var measure_features_i = [];
+                var graphics = [];
+                for (var i = 0, len = json.features.length; i < len; i++) {
+                    var json_feat = json.features[i];
+
+                    var g = new Graphic(json_feat);
+
+                    if (!g)
+                        continue;
+
+                    if (!g.attributes)
+                        g.attributes = {};
+
+                    g.attributes["name"] = (!nameField || !g.attributes[nameField]) ? 'n°' + (i + 1) : g.attributes[nameField];
+                    if (g.symbol && g.symbol.type == "textsymbol")
+                        g.attributes["name"] = g.symbol.text;
+                    g.attributes["description"] = (!descriptionField || !g.attributes[descriptionField]) ? '' : g.attributes[descriptionField];
+
+                    if (!g.symbol) {
+                        var symbol = false;
+                        switch (g.geometry.type) {
+                            case 'point':
+                                var symbol = new SimpleMarkerSymbol();
+                                break;
+                            case 'polyline':
+                                var symbol = new SimpleLineSymbol();
+                                break;
+                            case 'polygon':
+                                var symbol = new SimpleFillSymbol();
+                                break;
+                        }
+                        if (symbol) {
+                            g.setSymbol(symbol);
+                        }
+                    }
+
+                    //If is with measure
+                    if (json_feat.measure) {
+                        g.measure = json_feat.measure;
+                        measure_features_i.push(i);
+                    }
+                    graphics.push(g);
+                }
+
+                //Treat measures
+                for (var k = 0, k_len = measure_features_i.length; k < k_len; k++) {
+                    var i = measure_features_i[k]; //Indice to treat
+                    var label_graphic = (graphics[i].measure && graphics[i].measure.graphic && graphics[graphics[i].measure.graphic]) ?
+                        graphics[graphics[i].measure.graphic] :
+                        false;
+                    if (label_graphic) {
+                        graphics[i].measure.graphic = label_graphic
+                        label_graphic.measureParent = graphics[i];
+                    } else {
+                        graphics[i].measure = false;
+                    }
+                }
+
+                //Add graphics
+                for (var i = 0, nb = graphics.length; i < nb; i++) {
+                    if (graphics[i])
+                        this.drawBox.drawLayer.add(graphics[i]);
+                }
+
+                //Show list
+                this.setMode("list");
+            } catch (e) {
+                this.showMessage(this.nls.importErrorFileStructure, 'error');
+                return false;
+            }
+        },
+
+        importJsonContentV2: function(json, nameField, descriptionField) {
+            
             var geojson = toGeoJSON.kml((new DOMParser()).parseFromString(json, 'text/xml'))
+            
             
             try {
                 // if (typeof json == 'string') {
@@ -1509,6 +1689,7 @@ function(
                 for (var i = 0, len = geojson.features.length; i < len; i++) {
                     var json_feat = geojson.features[i];
                     var g = this.getGraphicFromGeoJson(json_feat);
+                    console.log('gggggggggg: ', g);
 
                     if (!g)
                         continue;
@@ -1581,14 +1762,26 @@ function(
         },
 
         exportSelectionInFile: function(evt) {
-            if (evt && evt.preventDefault)
+            if (evt && evt.preventDefault){
                 evt.preventDefault();
-            this.launchExportV2(true);
+            }
+
+            var format = dom.byId('draw-format-output').value;
+
+            if (format === 'kml')
+            {
+                this.launchExportV2(true);
+
+            }else{
+                this.launchExport(true)
+            }
         },
 
         launchExportV2: function(only_graphics_checked) {
 
             var drawing_json = this.drawingsGetJson(false, only_graphics_checked);
+
+            console.log('drawing_json: ', drawing_json);
 
             // Control if there are drawings
             if (!drawing_json) {
@@ -1601,29 +1794,29 @@ function(
                 "type":"FeatureCollection",
                 "features":[]
             };
+            
+            console.log('this.drawBox.drawLayer: ', this.drawBox.drawLayer.graphics);
 
             if (drawing_json.features.length > 0) {
 
                 for (var i = 0; i < this.drawBox.drawLayer.graphics.length; i++) {
                     var feature = this.drawBox.drawLayer.graphics[i];
-                    if (feature.symbol.type !== 'textsymbol')
-                    {
-                        var objFeature;
-                        feature.geometry = webMercatorUtils.webMercatorToGeographic(feature.geometry);
-                        objFeature = GeojsonConverters.arcgisToGeoJSON(feature);
-                        objFeature.properties = this.getPropertiesFromGraphic(feature, objFeature);
-                        console.log('objFeature: ', objFeature);
-                        console.log('feature: ', feature);
-                        geojsonObject.features.push(objFeature);
-                    }
+                    var objFeature;
+                    feature.geometry = webMercatorUtils.webMercatorToGeographic(feature.geometry);
+                    objFeature = GeojsonConverters.arcgisToGeoJSON(feature);
+                    objFeature.properties = this.getPropertiesFromGraphic(feature, objFeature);
+                    geojsonObject.features.push(objFeature);
                 }
             }
 
+            console.log('geojsonObject: ', geojsonObject);
+
             var str_kml = this.tokml(geojsonObject);
+            var milliseconds = new Date().getTime();
 
             saveAs(new Blob([str_kml], {
                 type: 'application/vnd.google-earth.kml+xml'
-            }), 'Dibujo.kml');
+            }), 'dibujo_' + milliseconds + '.kml');
 
             return false;
         },
@@ -1644,11 +1837,13 @@ function(
                 }
             };
 
+            var milliseconds = new Date().getTime();
+
             //Create datasource and download !
             var ds = exportUtils.createDataSource({
                 "type": exportUtils.TYPE_FEATURESET,
                 "data": drawing_seems_featureset,
-                "filename": (this.config.exportFileName) ? (this.config.exportFileName) : 'myDrawings'
+                "filename": (this.config.exportFileName) ? (this.config.exportFileName) : 'dibujo_' + milliseconds
             });
             ds.setFormat(exportUtils.FORMAT_FEATURESET)
             ds.download();

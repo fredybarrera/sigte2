@@ -150,13 +150,17 @@
             </div>
             <div class="footer">
                 <div>
-                    <div style="width: calc(100% - 35px);" class="list-draw-actions" data-dojo-attach-point="allActionsNode">
+                    <div style="width: calc(100% - 35px); position: absolute;" class="list-draw-actions" data-dojo-attach-point="allActionsNode">
                         <!--<span class="text">${nls.all} :</span>-->
                         <span class="text"><input type="checkbox" data-dojo-attach-event="onclick:listUpdateAllCheckbox" data-dojo-attach-point="listCheckboxAll2" /></span>
                         <span title="${nls.zoomAllLabel}" class="zoom blue-button" data-dojo-attach-event="onclick:zoomAll">&nbsp;</span>
                         <span title="${nls.copyLabel}" class="copy blue-button" data-dojo-attach-event="onclick:copy">&nbsp;</span>
                         <span title="${nls.deleteAllLabel}" class="clear red-button" data-dojo-attach-event="onclick:clear">&nbsp;</span>
                         <span title="${nls.exportLabel}" class="export blue-button" data-dojo-attach-event="onclick:exportSelectionInFile">&nbsp;</span>
+                        <select id="draw-format-output" style="width: 85px;font-size: 15px;margin-left: 6px;margin-top: 11px;">
+                            <option value="kml">Kml</option>
+                            <option value="geojson">GeoJson</option>
+                        </select>
                     </div>
 					<span title="${nls.importTitle}" class="import-button blue-button" data-dojo-attach-event="onclick:launchImportFile">&nbsp;</span>
                 </div>

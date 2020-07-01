@@ -187,10 +187,10 @@
     background-image: url("images/down.png");
 }
 .jimu-widget-edraw .list-draw-actions span.export {
-    background-image: url("images/download.png");
+    background-image: url("images/upload.png");
 }
 .jimu-widget-edraw .list-draw-actions span.import {
-    background-image: url("images/upload.png");
+    background-image: url("images/download.png");
 }
 .jimu-widget-edraw .list-draw-actions span:hover {
     border: 1px solid rgb(72, 85, 102);
@@ -258,7 +258,7 @@
 	text-align: center;
 	vertical-align: middle;
 	width: 30px;
-	background-image: url("images/upload.png");
+	background-image: url("images/download.png");
 	margin-top: 4px;
 }
 .jimu-widget-edraw .import-button:hover{
