@@ -146,7 +146,8 @@ define([
       srUtils.loadResource().then(lang.hitch(this, function() {
         var wkidLabel;
         if (srUtils.isValidWkid(this.map.spatialReference.wkid)) {
-          this.wkidInput.set('value', this.map.spatialReference.wkid);
+          // this.wkidInput.set('value', this.map.spatialReference.wkid);
+          this.wkidInput.set('value', 32719);
           wkidLabel = srUtils.getSRLabel(this.map.spatialReference.wkid);
           this.wkidLabel.innerHTML = utils.sanitizeHTML(wkidLabel);
           this.wkidLabel.title = wkidLabel;

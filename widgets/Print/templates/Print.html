@@ -79,7 +79,7 @@
                     <div>
                         <input type="text" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-event="onChange:_onOutputSRChange"
                             data-dojo-attach-point="wkidInput" data-dojo-props='style:{width:"100%"}'
-                            data-dojo-props="required: false"/>
+                            data-dojo-props="required: false" readonly="readonly" />
                     </div>
                     <div class="wkid-label jimu-ellipsis" data-dojo-attach-point="wkidLabel">
                     </div>
@@ -148,19 +148,19 @@
                             <td>
                                 <select data-dojo-type="dijit/form/Select" data-dojo-props="name:'scalebarUnit',style:'width:100%;'"
                         data-dojo-attach-point="scalebarUnitDijit">
-                                    <option value="Miles" selected="selected">${nls.unitsMiles}</option>
+                                    <!-- <option value="Miles" selected="selected">${nls.unitsMiles}</option> -->
                                     <option value="Kilometers">${nls.unitsKilometers}</option>
                                     <option value="Meters">${nls.unitsMeters}</option>
-                                    <option value="Feet">${nls.unitsFeet}</option>
+                                    <!-- <option value="Feet">${nls.unitsFeet}</option> -->
                                 </select>
                             </td>
                         </tr>
                     </table>
                 </div>
-                <div style="font-weight:bold;">
+                <div style="font-weight:bold;display:none">
                     ${nls.mapOnlyOptions}:
                 </div>
-                <div data-dojo-type="dijit/form/Form" data-dojo-attach-point="mapOnlyFormDijit">
+                <div data-dojo-type="dijit/form/Form" data-dojo-attach-point="mapOnlyFormDijit" style="display:none">
                     <table cellspacing="5">
                         <tr>
                             <td>
@@ -192,7 +192,7 @@
                                 ${nls.dpi}:
                             </td>
                             <td>
-                                <input type="text" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props="name:'dpi',required:true,value:96,style:'width:100px;'"
+                                <input type="text" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props="name:'dpi',required:true,value:96,constraints:{min:10,max:300},style:'width:100px;'"
                                 />
                             </td>
                         </tr>
