@@ -265,7 +265,7 @@
         "id": "widgets_Geoprocessing_Widget_36"
       },
       {
-        "name": "CoordinateMine",
+        "name": "Conversor de coordenadas mina",
         "version": "2.4",
         "uri": "widgets/Report/Widget",
         "index": 14,
@@ -278,6 +278,14 @@
         "config": "configs/AddData/config_widgets_AddData_Widget_38.json",
         "index": 15,
         "id": "widgets_AddData_Widget_38"
+      },
+      {
+        "name": "About",
+        "version": "2.16",
+        "uri": "widgets/About/Widget",
+        "config": "configs/About/config_widgets_About_Widget_39.json",
+        "index": 17,
+        "id": "widgets_About_Widget_39"
       }
     ],
     "groups": []
