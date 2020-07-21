@@ -1,0 +1,13 @@
+{
+  "name": "Capas CODELCO",
+  "platform": "HTML",
+  "version": "2.4",
+  "wabVersion": "2.4",
+  "author": "fbarrera@esri.cl",
+  "description": "Widget de agrupación de capas de CODELCO",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {
+    "hasConfig": false
+  }
+}

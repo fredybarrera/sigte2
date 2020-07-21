@@ -185,7 +185,7 @@
         "id": "widgets_LayerList_Widget_19",
         "name": "LayerList",
         "index": 4,
-        "label": "Capsa de información SIGTE",
+        "label": "Capas de información SIGTE",
         "icon": "configs\\LayerList\\icon_widgets_LayerList_Widget_19.jpeg",
         "config": "configs/LayerList/config_widgets_LayerList_Widget_19.json"
       },
@@ -280,12 +280,11 @@
         "id": "widgets_AddData_Widget_38"
       },
       {
-        "name": "About",
-        "version": "2.16",
-        "uri": "widgets/About/Widget",
-        "config": "configs/About/config_widgets_About_Widget_39.json",
-        "index": 17,
-        "id": "widgets_About_Widget_39"
+        "name": "LayerGroups",
+        "version": "2.4",
+        "uri": "widgets/LayerGroups/Widget",
+        "index": 16,
+        "id": "widgets_LayerGroups_Widget_40"
       }
     ],
     "groups": []

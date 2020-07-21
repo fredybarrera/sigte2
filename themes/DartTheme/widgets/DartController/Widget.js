@@ -183,6 +183,7 @@ define([
 
       // minimize controller
       _minimizeController: function() {
+        console.log('this.domNode: ', this.domNode);
         this.minimized = true;
         domClass.add(this.domNode, "dart-controller-minimized");
         if (this.collapsed) {
@@ -264,11 +265,16 @@ define([
         for (i = 0; i < allIconConfigs.length; i++) {
           iconConfig = allIconConfigs[i];
           name = iconConfig.name;
+          console.log('iconConfig: ', iconConfig);
           if (name === "ZoomSlider" || name === "HomeButton" || name === "MyLocation" || name === "ExtentNavigate") {
             this._createChildWidget(iconConfig);
           } else if (name === "Search" && defaultSearch) {
             defaultSearch = false;
             this._createChildWidget(iconConfig);
+          // TODO: Definir aca los widgets que se deben exluir de la carga inicial (widgets con capas de codelco)
+          // Estos widgets no se dibujaran en la barra inferior.
+          } else if (name === "LayerList") {
+            continue;
           } else {
             this.iconCount += 1;
             var node = this._createIconNode(iconConfig);
@@ -332,6 +338,8 @@ define([
 
       // create child widget
       _createChildWidget: function(iconConfig) {
+
+        console.log('aca se cran los elementos');
         this.widgetManager.loadWidget(iconConfig).then(lang.hitch(this, function(widget) {
           var name = iconConfig.name;
           switch (name) {
@@ -394,6 +402,7 @@ define([
 
       // on icon click
       _onIconClick: function(node) {
+        console.log('acaaaaaaaaaa: _onIconClick');
         var id = node.config.id;
         if (this.openedIds.indexOf(id) !== -1) {
           this._switchNodeToClose(id);
@@ -453,7 +462,10 @@ define([
 
       // show icon content
       _showIconContent: function(iconConfig) {
+        console.log('acaaa _showIconContent')
+        console.log('_showIconContent iconConfig: ', iconConfig)
         if (iconConfig.inPanel === false) {
+          console.log('acaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
           var name = iconConfig.name;
           this.widgetManager.loadWidget(iconConfig).then(lang.hitch(this, function(widget) {
             this.openedId = iconConfig.id;
@@ -466,7 +478,10 @@ define([
             this._minimizeController();
           }));
         } else {
+          console.log('errrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
+
           var pid = iconConfig.id + '_panel';
+          console.log('pid: ', pid);
           var panel = this.panelManager.getPanelById(pid);
           var pos = this._getNextPosition();
           if (panel) {
