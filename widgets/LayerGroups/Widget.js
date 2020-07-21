@@ -60,23 +60,33 @@ define([
 
 
 			_onBtnCapa1: function () {
-				let widgets = this.appConfig.widgetPool.widgets
-				let iconConfig = this.appConfig.widgetPool.widgets[2]
+				var widgets = this.appConfig.widgetPool.widgets
+				var iconConfig = widgets[14]
+				console.log('_onBtnCapa1 widgets: ', widgets)
 				var pos = this._getNextPosition();
 				iconConfig.panel.position = pos;
 				// this.openedIds.push(iconConfig.id);
 				// this.panelManager.showPanel(iconConfig).then(lang.hitch(this, function (panel) {
-				// 	aspect.after(panel, 'onClose', lang.hitch(this, function () {
+					// 	aspect.after(panel, 'onClose', lang.hitch(this, function () {
 				// 		this._switchNodeToClose(iconConfig.id);
 				// 	}));
 				// }));
-
+				this.panelManager.showPanel(iconConfig);
+			},
+			
+			_onBtnCapa2: function () {
+				var widgets = this.appConfig.widgetPool.widgets
+				console.log('_onBtnCapa2 widgets: ', widgets)
+				var iconConfig = widgets[15]
+				var pos = this._getNextPosition();
+				iconConfig.panel.position = pos;
 				this.panelManager.showPanel(iconConfig);
 			},
 
-			_onBtnCapa2: function () {
-				let widgets = this.appConfig.widgetPool.widgets
-				let iconConfig = this.appConfig.widgetPool.widgets[2]
+			_onBtnCapa3: function () {
+				var widgets = this.appConfig.widgetPool.widgets
+				console.log('_onBtnCapa3 widgets: ', widgets)
+				var iconConfig = widgets[16]
 				var pos = this._getNextPosition();
 				iconConfig.panel.position = pos;
 				this.panelManager.showPanel(iconConfig);

@@ -180,16 +180,6 @@
         "index": 3
       },
       {
-        "uri": "widgets/LayerList/Widget",
-        "version": "2.16",
-        "id": "widgets_LayerList_Widget_19",
-        "name": "LayerList",
-        "index": 4,
-        "label": "Capas de información SIGTE",
-        "icon": "configs\\LayerList\\icon_widgets_LayerList_Widget_19.jpeg",
-        "config": "configs/LayerList/config_widgets_LayerList_Widget_19.json"
-      },
-      {
         "uri": "widgets/ZoomSlider/Widget",
         "isPreconfiguredInTheme": true,
         "id": "widgets_ZoomSlider_Widget_27",
@@ -198,14 +188,14 @@
         "position": {
           "relativeTo": "map"
         },
-        "index": 5
+        "index": 4
       },
       {
         "name": "eDraw",
         "version": "2.8.1",
         "uri": "widgets/Draw/Widget",
         "config": "configs/eDraw/config_widgets_Draw_Widget_29.json",
-        "index": 6,
+        "index": 5,
         "id": "widgets_Draw_Widget_29"
       },
       {
@@ -213,7 +203,7 @@
         "version": "2.16",
         "uri": "widgets/BasemapGallery/Widget",
         "config": "configs/BasemapGallery/config_widgets_BasemapGallery_Widget_30.json",
-        "index": 7,
+        "index": 6,
         "id": "widgets_BasemapGallery_Widget_30"
       },
       {
@@ -221,7 +211,7 @@
         "version": "2.16",
         "uri": "widgets/Print/Widget",
         "config": "configs/Print/config_widgets_Print_Widget_31.json",
-        "index": 8,
+        "index": 7,
         "id": "widgets_Print_Widget_31"
       },
       {
@@ -229,14 +219,14 @@
         "version": "2.16",
         "uri": "widgets/GridOverlay/Widget",
         "config": "configs/GridOverlay/config_widgets_GridOverlay_Widget_32.json",
-        "index": 9,
+        "index": 8,
         "id": "widgets_GridOverlay_Widget_32"
       },
       {
         "name": "Select",
         "version": "2.16",
         "uri": "widgets/Select/Widget",
-        "index": 10,
+        "index": 9,
         "id": "widgets_Select_Widget_34"
       },
       {
@@ -244,7 +234,7 @@
         "version": "2.16",
         "IsController": false,
         "uri": "widgets/Screening/Widget",
-        "index": 11,
+        "index": 10,
         "id": "widgets_Screening_Widget_33"
       },
       {
@@ -253,7 +243,7 @@
         "IsController": false,
         "uri": "widgets/CoordinateConversion/Widget",
         "config": "configs/CoordinateConversion/config_widgets_CoordinateConversion_Widget_35.json",
-        "index": 12,
+        "index": 11,
         "id": "widgets_CoordinateConversion_Widget_35"
       },
       {
@@ -261,14 +251,14 @@
         "version": "2.16",
         "uri": "widgets/Geoprocessing/Widget",
         "config": "configs/Geoprocessing/config_widgets_Geoprocessing_Widget_36.json",
-        "index": 13,
+        "index": 12,
         "id": "widgets_Geoprocessing_Widget_36"
       },
       {
         "name": "Conversor de coordenadas mina",
         "version": "2.4",
         "uri": "widgets/Report/Widget",
-        "index": 14,
+        "index": 13,
         "id": "widgets_Report_Widget_37"
       },
       {
@@ -276,15 +266,45 @@
         "version": "2.16",
         "uri": "widgets/AddData/Widget",
         "config": "configs/AddData/config_widgets_AddData_Widget_38.json",
-        "index": 15,
+        "index": 14,
         "id": "widgets_AddData_Widget_38"
       },
       {
-        "name": "LayerGroups",
+        "name": "Capas CODELCO",
         "version": "2.4",
         "uri": "widgets/LayerGroups/Widget",
-        "index": 16,
+        "index": 15,
         "id": "widgets_LayerGroups_Widget_40"
+      },
+      {
+        "uri": "widgets/LayerList/Widget",
+        "version": "2.16",
+        "id": "widgets_LayerList_Widget_19",
+        "name": "LayerList",
+        "index": 16,
+        "label": "Capas de información SIGTE",
+        "icon": "configs\\LayerList\\icon_widgets_LayerList_Widget_19.jpeg",
+        "config": "configs/LayerList/config_widgets_LayerList_Widget_19.json"
+      },
+      {
+        "uri": "widgets/LayerList2/Widget",
+        "version": "2.16",
+        "id": "widgets_LayerList2_Widget_41",
+        "name": "LayerList2",
+        "index": 17,
+        "label": "Capas de información SIGTE 2",
+        "icon": "configs\\LayerList2\\icon_widgets_LayerList2_Widget_41.jpeg",
+        "config": "configs/LayerList2/config_widgets_LayerList2_Widget_41.json"
+      },
+      {
+        "uri": "widgets/LayerList3/Widget",
+        "version": "2.16",
+        "id": "widgets_LayerList3_Widget_42",
+        "name": "LayerList3",
+        "index": 18,
+        "label": "Capas de información SIGTE 3",
+        "icon": "configs\\LayerList3\\icon_widgets_LayerList3_Widget_42.jpeg",
+        "config": "configs/LayerList3/config_widgets_LayerList3_Widget_42.json"
       }
     ],
     "groups": []
