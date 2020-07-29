@@ -29,28 +29,8 @@
       "defaultFormat": "A° B' C\"N X° Y' Z\"E"
     },
     {
-      "notation": "GARS",
-      "defaultFormat": "XYQK"
-    },
-    {
-      "notation": "GEOREF",
-      "defaultFormat": "ABCDXY"
-    },
-    {
-      "notation": "MGRS",
-      "defaultFormat": "ZSXY"
-    },
-    {
-      "notation": "USNG",
-      "defaultFormat": "ZSXY"
-    },
-    {
       "notation": "UTM",
       "defaultFormat": "ZB X Y"
-    },
-    {
-      "notation": "UTM_H",
-      "defaultFormat": "ZH X Y"
     }
   ]
 }

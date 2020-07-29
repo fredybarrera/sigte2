@@ -61,35 +61,35 @@ define([
 
 			_onBtnCapa1: function () {
 				var widgets = this.appConfig.widgetPool.widgets
-				var iconConfig = widgets[14]
-				console.log('_onBtnCapa1 widgets: ', widgets)
+				var iconConfig = widgets.filter(widget => widget.name === 'LayerList');
+				console.log('_onBtnCapa1 iconConfig: ', iconConfig)
 				var pos = this._getNextPosition();
-				iconConfig.panel.position = pos;
+				iconConfig[0].panel.position = pos;
 				// this.openedIds.push(iconConfig.id);
 				// this.panelManager.showPanel(iconConfig).then(lang.hitch(this, function (panel) {
 					// 	aspect.after(panel, 'onClose', lang.hitch(this, function () {
 				// 		this._switchNodeToClose(iconConfig.id);
 				// 	}));
 				// }));
-				this.panelManager.showPanel(iconConfig);
+				this.panelManager.showPanel(iconConfig[0]);
 			},
 			
 			_onBtnCapa2: function () {
 				var widgets = this.appConfig.widgetPool.widgets
-				console.log('_onBtnCapa2 widgets: ', widgets)
-				var iconConfig = widgets[15]
+				var iconConfig = widgets.filter(widget => widget.name === 'LayerList2');
+				console.log('_onBtnCapa2 widgets: ', iconConfig)
 				var pos = this._getNextPosition();
-				iconConfig.panel.position = pos;
-				this.panelManager.showPanel(iconConfig);
+				iconConfig[0].panel.position = pos;
+				this.panelManager.showPanel(iconConfig[0]);
 			},
 
 			_onBtnCapa3: function () {
 				var widgets = this.appConfig.widgetPool.widgets
-				console.log('_onBtnCapa3 widgets: ', widgets)
-				var iconConfig = widgets[16]
+				var iconConfig = widgets.filter(widget => widget.name === 'LayerList3');
+				console.log('_onBtnCapa3 widgets: ', iconConfig)
 				var pos = this._getNextPosition();
-				iconConfig.panel.position = pos;
-				this.panelManager.showPanel(iconConfig);
+				iconConfig[0].panel.position = pos;
+				this.panelManager.showPanel(iconConfig[0]);
 			},
 
 			startup: function () {
